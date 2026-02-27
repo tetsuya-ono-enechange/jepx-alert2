@@ -1,0 +1,32 @@
+name: Daily JEPX Scraper
+
+on:
+  schedule:
+    - cron: '30 1 * * *' # 日本時間の朝10時30分に実行
+  workflow_dispatch: # 手動実行ボタン
+
+permissions:
+  contents: write # リポジトリへの書き込み権限を付与
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium
+      - name: Run script
+        run: python main.py
+      - name: Commit and push result
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add result.txt
+          git commit -m "Update daily report" || echo "No changes to commit"
+          git push
